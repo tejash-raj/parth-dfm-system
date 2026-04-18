@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PARTH — DFM Intelligence System</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { 
+                extend: { 
+                    fontFamily: { sans: ['Manrope', 'sans-serif'] },
+                    colors: { slate: { 850: '#151e2e', 950: '#0b0f19' } } 
+                } 
+            }
+        }
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #334155; }
+        
+        /* Modal Backdrop */
+        #modalBackdrop { display: none; backdrop-filter: blur(4px); }
+        #modalBackdrop.active { display: flex; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-200 font-sans h-screen flex overflow-hidden transition-colors duration-200 relative">
+
+    <div id="introPage" class="fixed inset-0 z-[100] flex flex-col items-center justify-between bg-gradient-to-br from-slate-100 via-slate-50 to-blue-50 dark:from-[#080b12] dark:via-[#0b0f19] dark:to-blue-950 transition-opacity duration-700 ease-in-out">
+        
+        <div class="absolute top-6 right-6 z-50">
+            <button id="introThemeBtn" class="text-sm font-bold bg-white hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-5 py-2.5 rounded-full shadow-lg transition-colors border border-slate-200 dark:border-slate-700">
+                ☀️ Light Mode
+            </button>
+        </div>
+
+        <div class="flex-1"></div>
+
+        <div class="flex flex-col items-center text-center px-6 max-w-4xl">
+            <h1 class="text-7xl md:text-9xl font-black text-blue-600 dark:text-blue-500 tracking-wider mb-6 drop-shadow-lg flex items-center gap-4">
+                <span>⚙️</span> PARTH
+            </h1>
+
+            <h2 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-6 max-w-2xl leading-tight">
+                Design for Manufacturing Engine
+            </h2>
+            
+            <p class="text-base md:text-lg text-slate-600 dark:text-slate-400 font-medium mb-12 leading-relaxed max-w-2xl">
+                Optimize your design process with immediate, rule-based feedback. Evaluate your 3D geometry for production routing, structural failure risks, and life cycle sustainability (LCSA) logic.
+            </p>
+            <button id="startBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white px-10 py-4 rounded-full font-bold text-xl shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] transition-all transform hover:-translate-y-1">
+                🚀 Try PARTH For Free
+            </button>
+        </div>
+
+        <div class="flex-1 flex flex-col justify-end items-center pb-10 gap-3">
+            <div class="text-center">
+                <p class="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Engineered & Designed By</p>
+                <p class="text-[16px] font-black text-sky-600 dark:text-sky-500 tracking-wide">Tejash Raj (IITG)</p>
+            </div>
+            <a href="https://www.behance.net/tejashraj" target="_blank" class="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 transition-colors bg-white dark:bg-slate-800 px-4 py-2 rounded-full shadow-md border border-slate-200 dark:border-slate-700 hover:scale-105 transform duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M22 7h-7v-2h7v2zm1.726 10c-.442 1.297-2.029 3-5.101 3-3.074 0-5.564-1.729-5.564-5.675 0-3.91 2.325-5.92 5.466-5.92 3.082 0 4.964 1.782 5.375 4.426.078.506.109 1.188.095 2.14h-8.027c.13 3.211 3.483 3.312 4.588 2.029h3.168zm-7.686-4h4.965c-.105-1.547-1.136-2.219-2.477-2.219-1.466 0-2.277.768-2.488 2.219zm-9.574 6.988h-6.466v-15.154h5.343c3.318 0 4.786 1.438 4.786 3.562 0 1.562-1.071 2.656-2.24 3.01v.063c1.756.241 3.12 1.634 3.12 3.562 0 2.689-1.928 4.957-4.543 4.957zm-3.523-9.528h2.09c1.026 0 1.947-.468 1.947-1.84 0-1.472-1.01-1.776-2.288-1.776h-1.749v3.616zm0 6.643h2.24c1.378 0 2.383-.34 2.383-2.1 0-1.685-1.01-2.126-2.316-2.126h-2.307v4.226z"/></svg>
+                See more work by Tejash Raj
+            </a>
+        </div>
+    </div>
+
+    <div class="w-[480px] min-w-[480px] h-full overflow-y-auto border-r border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 flex flex-col shadow-xl z-10 transition-colors duration-200">
+        <div class="p-6 flex flex-col gap-6">
+            
+            <div class="flex justify-between items-start">
+                <div>
+                    <h1 class="text-3xl font-black text-blue-600 dark:text-blue-500 tracking-wide">PARTH</h1>
+                    <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-1">DFM, LCSA & Failure Risk</p>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <button id="manualBtn" class="text-xs font-bold bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded transition-colors">
+                        📖 How to use me
+                    </button>
+                    <button id="themeBtn" class="text-xs font-bold bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded transition-colors">
+                        ☀️ Light Mode
+                    </button>
+                </div>
+            </div>
+
+            <div class="border border-slate-300 dark:border-slate-700 rounded-lg p-5 pt-4 relative mt-2 bg-slate-50 dark:bg-slate-850 transition-colors duration-200">
+                <span class="absolute -top-3 left-3 bg-white dark:bg-slate-900 px-2 text-sm font-bold text-slate-600 dark:text-slate-400 transition-colors duration-200">1. CAD & Geometry</span>
+                
+                <input type="file" id="fileInput" accept=".stl,.obj" class="hidden">
+                <button id="uploadBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-md font-semibold transition-colors mb-3">
+                    📁 Upload 3D Geometry (.STL)
+                </button>
+                <p id="fileLabel" class="text-sm italic text-slate-500 mb-4">No geometry loaded.</p>
+
+                <div class="flex flex-col gap-3">
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Geometric Complexity</label>
+                            <button class="text-sky-500 hover:text-sky-400 font-bold" onclick="showHelp('Geometric Complexity', 'Triggers specific Design for Additive Manufacturing (DFAM) constraints.')">(?)</button>
+                        </div>
+                        <select id="dfam" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded p-2 text-sm focus:outline-none dark:text-white transition-colors duration-200"><option>standard block/cylinders</option><option>thin walls / complex overhangs</option></select>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Assembly Count</label>
+                            <button class="text-sky-500 hover:text-sky-400 font-bold" onclick="showHelp('Assembly Count', 'Determines assembly complexity and part consolidation potential.')">(?)</button>
+                        </div>
+                        <select id="components" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded p-2 text-sm focus:outline-none dark:text-white transition-colors duration-200"><option>1 (monolithic)</option><option>2-5 (simple assembly)</option><option>5+ (complex assembly)</option></select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border border-slate-300 dark:border-slate-700 rounded-lg p-5 pt-4 relative mt-2 bg-slate-50 dark:bg-slate-850 transition-colors duration-200">
+                <span class="absolute -top-3 left-3 bg-white dark:bg-slate-900 px-2 text-sm font-bold text-slate-600 dark:text-slate-400 transition-colors duration-200">2. Real-World Constraints</span>
+                
+                <div class="flex flex-col gap-4">
+                    <div>
+                        <label id="tempLabel" class="text-sm font-bold block mb-2 text-slate-800 dark:text-slate-200">Maximum Exposure Temp: 30 °C</label>
+                        <input type="range" id="temp" min="20" max="300" value="30" class="w-full accent-blue-600 dark:accent-blue-500" oninput="document.getElementById('tempLabel').innerText = `Maximum Exposure Temp: ${this.value} °C`">
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <div class="flex justify-between mb-1"><label class="text-sm font-semibold text-slate-700 dark:text-slate-300">UV / Sunlight</label><button class="text-sky-500 font-bold" onclick="showHelp('UV / Sunlight', 'Flags materials prone to UV degradation and yellowing.')">(?)</button></div>
+                            <select id="uv" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded p-2 text-sm dark:text-white"><option>low (indoor/shaded)</option><option>high (direct sunlight)</option></select>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1"><label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Moisture</label><button class="text-sky-500 font-bold" onclick="showHelp('Moisture Exposure', 'Evaluates moisture absorption and swelling behavior.')">(?)</button></div>
+                            <select id="moisture" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded p-2 text-sm dark:text-white"><option>low (dry)</option><option>high (wet/submerged)</option></select>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1"><label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Expected Load</label><button class="text-sky-500 font-bold" onclick="showHelp('Expected Load', 'Cross-references required tensile strength against material yield limits.')">(?)</button></div>
+                            <select id="load" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded p-2 text-sm dark:text-white"><option>1-5kg</option><option>5-25kg</option><option>25-50kg</option><option>50kg+</option></select>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1"><label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Flexibility</label><button class="text-sky-500 font-bold" onclick="showHelp('Kinematic Flexibility', 'Requirement for snap-fits or structural rigidity.')">(?)</button></div>
+                            <select id="flex" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded p-2 text-sm dark:text-white"><option>low</option><option>medium</option><option>high</option><option>very_high</option></select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border border-slate-300 dark:border-slate-700 rounded-lg p-5 pt-4 relative mt-2 bg-slate-50 dark:bg-slate-850 transition-colors duration-200">
+                <span class="absolute -top-3 left-3 bg-white dark:bg-slate-900 px-2 text-sm font-bold text-slate-600 dark:text-slate-400 transition-colors duration-200">3. Production & LCSA</span>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="col-span-2">
+                        <div class="flex justify-between mb-1"><label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Intended Product Lifespan</label><button class="text-sky-500 font-bold" onclick="showHelp('Product Lifespan', 'Crucial for Life Cycle Sustainability Assessment (LCSA).')">(?)</button></div>
+                        <select id="lifespan" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded p-2 text-sm dark:text-white"><option>short (<1 yr)</option><option>mid (1-10 yrs)</option><option>long (10+ yrs)</option></select>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1"><label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Surface Finish</label><button class="text-sky-500 font-bold" onclick="showHelp('Surface Finish', 'Limits certain 3D printing and rough machining processes.')">(?)</button></div>
+                        <select id="finish" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded p-2 text-sm dark:text-white"><option>low</option><option>medium</option><option>high</option></select>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1"><label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Precision</label><button class="text-sky-500 font-bold" onclick="showHelp('Precision', 'High precision demands Subtractive (CNC) manufacturing.')">(?)</button></div>
+                        <select id="precision" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded p-2 text-sm dark:text-white"><option>low</option><option>medium</option><option>high</option></select>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1"><label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Batch Volume</label><button class="text-sky-500 font-bold" onclick="showHelp('Batch Volume', 'Drives economic feasibility of injection molding vs printing.')">(?)</button></div>
+                        <select id="production" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded p-2 text-sm dark:text-white"><option>low</option><option>medium</option><option>high</option></select>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1"><label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Lead Time</label><button class="text-sky-500 font-bold" onclick="showHelp('Lead Time', 'Evaluates speed vs end-use quality constraints.')">(?)</button></div>
+                        <select id="time" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded p-2 text-sm dark:text-white"><option>quick</option><option>perfect</option></select>
+                    </div>
+                    <div class="col-span-2">
+                        <div class="flex justify-between mb-1"><label class="text-sm font-semibold text-slate-700 dark:text-slate-300">User Interaction</label><button class="text-sky-500 font-bold" onclick="showHelp('User Interaction', 'Direct contact demands safe, high-finish surface properties.')">(?)</button></div>
+                        <select id="user_contact" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded p-2 text-sm dark:text-white"><option>indirect</option><option>direct</option></select>
+                    </div>
+                </div>
+            </div>
+
+            <button id="runBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-md font-bold text-lg shadow-lg transition-colors mt-2">
+                🚀 Run Intelligence Analysis
+            </button>
+
+            <div class="mt-4 pt-5 border-t border-slate-300 dark:border-slate-700 text-center pb-2">
+                <p class="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Code Developed By</p>
+                <p class="text-[15px] font-black text-blue-600 dark:text-blue-500 tracking-wide mt-1">Tejash Raj (IITG)</p>
+                <a href="https://www.behance.net/tejashraj" target="_blank" class="inline-block mt-3 text-[12px] font-bold text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 transition-colors">
+                    View Full Portfolio &rarr;
+                </a>
+            </div>
+            
+        </div>
+    </div>
+
+    <div class="flex-1 flex flex-col h-full bg-slate-100 dark:bg-slate-950 relative transition-colors duration-200">
+        <div id="viewport3D" class="h-[45%] border-b-2 border-slate-300 dark:border-slate-800 cursor-move"></div>
+        <div class="px-5 py-3 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center transition-colors duration-200">
+            <h2 class="font-bold text-slate-800 dark:text-slate-300">Master Intelligence Terminal</h2>
+            <button id="exportBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded text-sm font-bold opacity-50 cursor-not-allowed transition-all" disabled>
+                📄 Export Enterprise PDF Report
+            </button>
+        </div>
+        <div id="terminal" class="flex-1 p-5 overflow-y-auto font-mono text-sm leading-relaxed pb-10 bg-slate-100 dark:bg-slate-950 transition-colors duration-200"></div>
+    </div>
+
+    <div id="modalBackdrop" class="fixed inset-0 bg-slate-900/50 z-[200] items-center justify-center">
+        <div class="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-2xl max-w-lg w-full m-4 border border-slate-200 dark:border-slate-700 relative">
+            <button id="closeModal" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-white font-bold text-xl">&times;</button>
+            <h3 id="modalTitle" class="text-xl font-bold mb-3 text-blue-600 dark:text-blue-400">Title</h3>
+            <div id="modalBody" class="text-slate-700 dark:text-slate-300 text-sm leading-relaxed">
+                Body content
+            </div>
+        </div>
+    </div>
+
+    <div id="feedbackModal" class="fixed inset-0 bg-slate-900/70 z-[300] items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white dark:bg-slate-800 p-8 rounded-xl shadow-2xl max-w-md w-full m-4 border border-slate-200 dark:border-slate-700 relative transform scale-95 transition-transform duration-300" id="feedbackModalContent">
+            <button id="closeFeedback" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-white font-bold text-2xl">&times;</button>
+            <div class="text-center">
+                <div class="text-5xl mb-4">🙌</div>
+                <h3 class="text-2xl font-bold mb-2 text-slate-900 dark:text-white">Report Downloaded!</h3>
+                <p class="text-slate-600 dark:text-slate-300 mb-6 leading-relaxed text-sm">
+                    I hope PARTH added value to your engineering workflow. Since this is a solo portfolio project, your direct feedback helps me improve the engine's UX and logic. Would you mind sharing your thoughts?
+                </p>
+                <div class="flex flex-col gap-3">
+                    <a href="mailto:tejash.designer@gmail.com?subject=Feedback on PARTH DFM Engine" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors inline-block text-center shadow-md">
+                        ✉️ Send Feedback via Email
+                    </a>
+                    <button id="skipFeedback" class="w-full bg-transparent hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 font-semibold py-3 px-4 rounded-lg transition-colors">
+                        Maybe Later
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="pdfContainer" class="hidden bg-white text-black p-10 w-[800px]"></div>
+
+    <script>
+        // ==========================================
+        // LANDING PAGE LOGIC
+        // ==========================================
+        document.getElementById('startBtn').addEventListener('click', () => {
+            const intro = document.getElementById('introPage');
+            intro.style.opacity = '0'; 
+            setTimeout(() => {
+                intro.style.display = 'none'; 
+                window.dispatchEvent(new Event('resize')); 
+            }, 700); 
+        });
+
+        // ==========================================
+        // UI & THEME LOGIC
+        // ==========================================
+        const themeBtn = document.getElementById('themeBtn');
+        const introThemeBtn = document.getElementById('introThemeBtn');
+        const html = document.documentElement;
+
+        function toggleTheme() {
+            html.classList.toggle('dark');
+            const isDark = html.classList.contains('dark');
+            const text = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+            
+            themeBtn.innerText = text;
+            introThemeBtn.innerText = text;
+            
+            scene.background = new THREE.Color(isDark ? 0x0b0f19 : 0xF8FAFC);
+            renderer.render(scene, camera);
+        }
+
+        themeBtn.addEventListener('click', toggleTheme);
+        introThemeBtn.addEventListener('click', toggleTheme);
+
+        // Basic Info Modal Logic
+        const modalBackdrop = document.getElementById('modalBackdrop');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
+
+        function openModal(title, bodyHtml) {
+            modalTitle.innerText = title;
+            modalBody.innerHTML = bodyHtml;
+            modalBackdrop.classList.add('active');
+        }
+
+        document.getElementById('closeModal').addEventListener('click', () => modalBackdrop.classList.remove('active'));
+        modalBackdrop.addEventListener('click', (e) => { if (e.target === modalBackdrop) modalBackdrop.classList.remove('active'); });
+
+        function showHelp(title, description) {
+            openModal(`Info: ${title}`, `<p>${description}</p>`);
+        }
+
+        document.getElementById('manualBtn').addEventListener('click', () => {
+            openModal("Welcome to PARTH", `
+                <p><b>PARTH</b> is an intelligent Design for Manufacturing (DFM) and Failure Risk Engine. Follow these steps:</p>
+                <ol class="list-decimal pl-5 mt-2 space-y-2">
+                    <li><b>Upload 3D Geometry:</b> Click the blue upload button to load your STL. PARTH extracts spatial volume and dimensions automatically. <i>(You can click, drag, and zoom the 3D model in the viewport!)</i></li>
+                    <li><b>Define Constraints:</b> Use sliders and dropdowns to set environmental conditions. <i>Click the <b>(?)</b> icons for explanations.</i></li>
+                    <li><b>Set Production Goals:</b> Choose manufacturing scale, precision, and lifespan.</li>
+                    <li><b>Run Analysis:</b> The engine evaluates over 100 materials, predicts failure risks, and outputs explicit Tooling, Process, and DFAM strategies.</li>
+                    <li><b>Export Report:</b> Generate a clean, color-coded PDF containing your CAD snapshot and intelligence logic.</li>
+                </ol>
+            `);
+        });
+
+        // Feedback Modal Logic
+        const fModal = document.getElementById('feedbackModal');
+        const fContent = document.getElementById('feedbackModalContent');
+        
+        function closeFModal() {
+            fModal.classList.add('opacity-0');
+            fContent.classList.add('scale-95');
+            setTimeout(() => {
+                fModal.classList.add('hidden');
+                fModal.classList.remove('flex');
+            }, 300);
+        }
+
+        document.getElementById('closeFeedback').addEventListener('click', closeFModal);
+        document.getElementById('skipFeedback').addEventListener('click', closeFModal);
+        fModal.addEventListener('click', (e) => { if (e.target === fModal) closeFModal(); });
+
+        // ==========================================
+        // THREE.JS VIEWPORT & ORBIT CONTROLS
+        // ==========================================
+        const container = document.getElementById('viewport3D');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0b0f19); 
+
+        const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 5000);
+        camera.position.set(150, 100, 150);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        container.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true; 
+        controls.dampingFactor = 0.05;
+        controls.autoRotate = true; 
+        controls.autoRotateSpeed = 1.0;
+        controls.enableZoom = true; 
+        controls.enablePan = true;  
+
+        const gridHelper = new THREE.GridHelper(500, 50, 0x334155, 0x1e293b);
+        scene.add(gridHelper);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(100, 200, 50);
+        scene.add(dirLight);
+
+        let meshItem = null;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update(); 
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            if(container.clientWidth > 0 && container.clientHeight > 0) {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            }
+        });
+
+        window.appState = { volume: 0, dimensions: [0,0,0], filename: "None", currentReport: null };
+        const terminal = document.getElementById('terminal');
+
+        function logToConsole(tag, message, colorClass = "text-emerald-400") {
+            const htmlStr = `<div class="mb-2"><span class="font-bold ${colorClass}">[${tag}]</span> <span class="text-slate-800 dark:text-slate-100">${message}</span></div>`;
+            terminal.innerHTML += htmlStr;
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        logToConsole("SYSTEM", "Awaiting geometry and constraint parameters...", "text-sky-400");
+
+        function calculateVolume(geometry) {
+            let volume = 0;
+            const positions = geometry.attributes.position.array;
+            for (let i = 0; i < positions.length; i += 9) {
+                const p1x = positions[i], p1y = positions[i+1], p1z = positions[i+2];
+                const p2x = positions[i+3], p2y = positions[i+4], p2z = positions[i+5];
+                const p3x = positions[i+6], p3y = positions[i+7], p3z = positions[i+8];
+                const cx = (p2y * p3z) - (p2z * p3y);
+                const cy = (p2z * p3x) - (p2x * p3z);
+                const cz = (p2x * p3y) - (p2y * p3x);
+                volume += (p1x * cx + p1y * cy + p1z * cz) / 6.0;
+            }
+            return Math.abs(volume);
+        }
+
+        document.getElementById('uploadBtn').addEventListener('click', () => document.getElementById('fileInput').click());
+
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            logToConsole("PROCESS", `Parsing geometry nodes for ${file.name}...`, "text-amber-400");
+            window.appState.filename = file.name;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const loader = new THREE.STLLoader();
+                    const geometry = loader.parse(e.target.result);
+
+                    geometry.computeBoundingBox();
+                    const center = new THREE.Vector3();
+                    geometry.boundingBox.getCenter(center);
+                    geometry.translate(-center.x, -center.y, -center.z);
+
+                    const box = new THREE.Box3().setFromObject(new THREE.Mesh(geometry));
+                    const size = new THREE.Vector3();
+                    box.getSize(size);
+
+                    const volume = calculateVolume(geometry);
+                    window.appState.volume = volume;
+                    window.appState.dimensions = [size.x, size.y, size.z];
+
+                    if (meshItem) scene.remove(meshItem);
+                    const material = new THREE.MeshPhongMaterial({ color: 0x2563EB, specular: 0x111111, shininess: 100 });
+                    meshItem = new THREE.Mesh(geometry, material);
+                    scene.add(meshItem);
+
+                    const maxDim = Math.max(size.x, size.y, size.z);
+                    camera.position.set(maxDim * 1.5, maxDim * 1.2, maxDim * 1.5);
+                    controls.target.set(0, 0, 0);
+                    controls.update();
+
+                    document.getElementById('fileLabel').innerHTML = `Loaded: <b>${file.name}</b><br>Vol: ${volume.toFixed(2)} mm³<br>Dim: ${size.x.toFixed(1)} x ${size.y.toFixed(1)} x ${size.z.toFixed(1)} mm`;
+                    logToConsole("SUCCESS", `Geometry analyzed. Extracted Dimensions: ${size.x.toFixed(1)} x ${size.y.toFixed(1)} x ${size.z.toFixed(1)} mm`, "text-emerald-500");
+
+                } catch (error) {
+                    logToConsole("ERROR", "Failed to parse STL file. Check file validity.", "text-red-500");
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        // ==========================================
+        // MASSIVELY EXPANDED MATERIAL DATABASE (100+ Materials)
+        // ==========================================
+        const MATERIALS = {
+            "PLA": {"type": "Plastic", "temp": 60, "flex": "low", "finish": "low", "cost": 1, "eco": "low", "eol": "industrial compost", "uv": "poor", "moisture": "high_absorption", "strength": "low"},
+            "ABS": {"type": "Plastic", "temp": 100, "flex": "medium", "finish": "medium", "cost": 1, "eco": "high", "eol": "recyclable", "uv": "poor", "moisture": "low_absorption", "strength": "medium"},
+            "PET (Standard)": {"type": "Plastic", "temp": 70, "flex": "low", "finish": "high", "cost": 1, "eco": "medium", "eol": "highly recyclable", "uv": "good", "moisture": "waterproof", "strength": "medium"},
+            "PETG": {"type": "Plastic", "temp": 80, "flex": "medium", "finish": "medium", "cost": 2, "eco": "medium", "eol": "recyclable", "uv": "good", "moisture": "waterproof", "strength": "medium"},
+            "ASA (Weather Resistant)": {"type": "Plastic", "temp": 95, "flex": "medium", "finish": "medium", "cost": 2, "eco": "high", "eol": "recyclable", "uv": "excellent", "moisture": "waterproof", "strength": "medium"},
+            "PP (Polypropylene)": {"type": "Plastic", "temp": 100, "flex": "high", "finish": "low", "cost": 1, "eco": "medium", "eol": "recyclable", "uv": "poor", "moisture": "waterproof", "strength": "medium"},
+            "HDPE (High-Density PE)": {"type": "Plastic", "temp": 120, "flex": "high", "finish": "low", "cost": 1, "eco": "medium", "eol": "recyclable", "uv": "good", "moisture": "waterproof", "strength": "medium"},
+            "LDPE (Low-Density PE)": {"type": "Plastic", "temp": 80, "flex": "very_high", "finish": "low", "cost": 1, "eco": "medium", "eol": "recyclable", "uv": "poor", "moisture": "waterproof", "strength": "low"},
+            "PS (Polystyrene)": {"type": "Plastic", "temp": 70, "flex": "low", "finish": "high", "cost": 1, "eco": "very_high", "eol": "recyclable", "uv": "poor", "moisture": "waterproof", "strength": "low"},
+            "HIPS (High Impact PS)": {"type": "Plastic", "temp": 80, "flex": "medium", "finish": "medium", "cost": 1, "eco": "high", "eol": "recyclable", "uv": "poor", "moisture": "waterproof", "strength": "medium"},
+            "PVC (Polyvinyl Chloride)": {"type": "Plastic", "temp": 60, "flex": "low", "finish": "medium", "cost": 1, "eco": "very_high", "eol": "difficult", "uv": "good", "moisture": "waterproof", "strength": "medium"},
+            "Nylon (PA6)": {"type": "Plastic", "temp": 100, "flex": "high", "finish": "medium", "cost": 2, "eco": "high", "eol": "downcyclable", "uv": "poor", "moisture": "high_absorption", "strength": "high"},
+            "Nylon (PA12)": {"type": "Plastic", "temp": 120, "flex": "high", "finish": "medium", "cost": 3, "eco": "high", "eol": "downcyclable", "uv": "poor", "moisture": "high_absorption", "strength": "high"},
+            "Polycarbonate (PC)": {"type": "Plastic", "temp": 140, "flex": "medium", "finish": "high", "cost": 4, "eco": "high", "eol": "recyclable", "uv": "excellent", "moisture": "waterproof", "strength": "high"},
+            "PC-ABS Blend": {"type": "Plastic", "temp": 120, "flex": "medium", "finish": "high", "cost": 3, "eco": "high", "eol": "recyclable", "uv": "good", "moisture": "waterproof", "strength": "high"},
+            "POM (Delrin/Acetal)": {"type": "Plastic", "temp": 120, "flex": "medium", "finish": "high", "cost": 3, "eco": "high", "eol": "difficult", "uv": "poor", "moisture": "waterproof", "strength": "high"},
+            "PMMA (Acrylic)": {"type": "Plastic", "temp": 80, "flex": "low", "finish": "high", "cost": 2, "eco": "medium", "eol": "recyclable", "uv": "excellent", "moisture": "waterproof", "strength": "medium"},
+            "PTFE (Teflon)": {"type": "Plastic", "temp": 260, "flex": "high", "finish": "high", "cost": 6, "eco": "very_high", "eol": "difficult", "uv": "excellent", "moisture": "waterproof", "strength": "low"},
+            
+            // --- HIGH-PERFORMANCE SUPER POLYMERS ---
+            "PEEK": {"type": "Plastic", "temp": 250, "flex": "low", "finish": "high", "cost": 9, "eco": "high", "eol": "recyclable", "uv": "excellent", "moisture": "waterproof", "strength": "very_high"},
+            "PEKK": {"type": "Plastic", "temp": 260, "flex": "low", "finish": "high", "cost": 9, "eco": "high", "eol": "recyclable", "uv": "excellent", "moisture": "waterproof", "strength": "extreme"},
+            "PEI (Ultem 1010)": {"type": "Plastic", "temp": 210, "flex": "low", "finish": "high", "cost": 8, "eco": "high", "eol": "recyclable", "uv": "good", "moisture": "waterproof", "strength": "very_high"},
+            "PEI (Ultem 9085)": {"type": "Plastic", "temp": 170, "flex": "medium", "finish": "medium", "cost": 8, "eco": "high", "eol": "recyclable", "uv": "good", "moisture": "waterproof", "strength": "high"},
+            "PAI (Torlon)": {"type": "Plastic", "temp": 260, "flex": "low", "finish": "high", "cost": 10, "eco": "high", "eol": "difficult", "uv": "excellent", "moisture": "waterproof", "strength": "extreme"},
+            "PPS (Ryton)": {"type": "Plastic", "temp": 200, "flex": "low", "finish": "medium", "cost": 7, "eco": "high", "eol": "recyclable", "uv": "excellent", "moisture": "waterproof", "strength": "high"},
+            "PSU (Polysulfone)": {"type": "Plastic", "temp": 160, "flex": "medium", "finish": "high", "cost": 6, "eco": "high", "eol": "recyclable", "uv": "good", "moisture": "waterproof", "strength": "high"},
+            "PES (Polyethersulfone)": {"type": "Plastic", "temp": 180, "flex": "medium", "finish": "high", "cost": 7, "eco": "high", "eol": "recyclable", "uv": "good", "moisture": "waterproof", "strength": "high"},
+
+            // --- PHOTOPOLYMERS (SLA RESINS) ---
+            "SLA Standard Resin": {"type": "Resin", "temp": 50, "flex": "low", "finish": "high", "cost": 3, "eco": "very_high", "eol": "toxic_landfill", "uv": "poor", "moisture": "swells", "strength": "low"},
+            "SLA Tough Resin": {"type": "Resin", "temp": 60, "flex": "medium", "finish": "high", "cost": 4, "eco": "very_high", "eol": "toxic_landfill", "uv": "poor", "moisture": "waterproof", "strength": "medium"},
+            "SLA Flexible Resin": {"type": "Resin", "temp": 50, "flex": "very_high", "finish": "high", "cost": 5, "eco": "very_high", "eol": "toxic_landfill", "uv": "poor", "moisture": "waterproof", "strength": "low"},
+            "SLA High-Temp Resin": {"type": "Resin", "temp": 230, "flex": "low", "finish": "high", "cost": 6, "eco": "very_high", "eol": "toxic_landfill", "uv": "good", "moisture": "waterproof", "strength": "high"},
+            "SLA Castable Resin (Jewelry)": {"type": "Resin", "temp": 40, "flex": "low", "finish": "high", "cost": 7, "eco": "very_high", "eol": "burnout", "uv": "poor", "moisture": "swells", "strength": "low"},
+            
+            // --- ELASTOMERS & RUBBERS ---
+            "TPU (Polyurethane)": {"type": "Elastomer", "temp": 80, "flex": "very_high", "finish": "medium", "cost": 3, "eco": "medium", "eol": "downcyclable", "uv": "good", "moisture": "low_absorption", "strength": "low"},
+            "TPE (Thermoplastic Elastomer)": {"type": "Elastomer", "temp": 70, "flex": "very_high", "finish": "medium", "cost": 2, "eco": "medium", "eol": "downcyclable", "uv": "good", "moisture": "low_absorption", "strength": "low"},
+            "Silicone Rubber": {"type": "Elastomer", "temp": 200, "flex": "very_high", "finish": "high", "cost": 4, "eco": "medium", "eol": "difficult", "uv": "excellent", "moisture": "waterproof", "strength": "low"},
+            "Liquid Silicone Rubber (LSR)": {"type": "Elastomer", "temp": 250, "flex": "very_high", "finish": "high", "cost": 6, "eco": "medium", "eol": "difficult", "uv": "excellent", "moisture": "waterproof", "strength": "low"},
+            "EPDM Rubber": {"type": "Elastomer", "temp": 150, "flex": "very_high", "finish": "low", "cost": 2, "eco": "high", "eol": "difficult", "uv": "excellent", "moisture": "waterproof", "strength": "low"},
+            "Nitrile Rubber (Buna-N)": {"type": "Elastomer", "temp": 100, "flex": "very_high", "finish": "low", "cost": 2, "eco": "high", "eol": "difficult", "uv": "poor", "moisture": "waterproof", "strength": "low"},
+            "Neoprene": {"type": "Elastomer", "temp": 120, "flex": "very_high", "finish": "medium", "cost": 3, "eco": "high", "eol": "difficult", "uv": "good", "moisture": "waterproof", "strength": "low"},
+            "Viton (Fluoroelastomer)": {"type": "Elastomer", "temp": 250, "flex": "very_high", "finish": "medium", "cost": 7, "eco": "very_high", "eol": "difficult", "uv": "excellent", "moisture": "waterproof", "strength": "medium"},
+            "Sorbothane": {"type": "Elastomer", "temp": 80, "flex": "very_high", "finish": "medium", "cost": 6, "eco": "high", "eol": "difficult", "uv": "poor", "moisture": "waterproof", "strength": "low"},
+            "Fluorosilicone (FVMQ)": {"type": "Elastomer", "temp": 200, "flex": "very_high", "finish": "medium", "cost": 8, "eco": "very_high", "eol": "difficult", "uv": "excellent", "moisture": "waterproof", "strength": "low"},
+            "Natural Rubber": {"type": "Elastomer", "temp": 80, "flex": "very_high", "finish": "low", "cost": 1, "eco": "low", "eol": "biodegradable", "uv": "poor", "moisture": "low_absorption", "strength": "low"},
+
+            // --- ECO / SUSTAINABLE POLYMERS ---
+            "rPET (Recycled PET)": {"type": "Plastic", "temp": 75, "flex": "medium", "finish": "medium", "cost": 1, "eco": "very_low", "eol": "recyclable", "uv": "good", "moisture": "waterproof", "strength": "medium"},
+            "PHA (Biopolymer)": {"type": "Plastic", "temp": 60, "flex": "medium", "finish": "low", "cost": 4, "eco": "very_low", "eol": "biodegradable", "uv": "poor", "moisture": "high_absorption", "strength": "low"},
+            "PBS (Polybutylene Succinate)": {"type": "Plastic", "temp": 90, "flex": "high", "finish": "medium", "cost": 5, "eco": "low", "eol": "industrial compost", "uv": "poor", "moisture": "low_absorption", "strength": "medium"},
+            "Cellulose Acetate": {"type": "Plastic", "temp": 70, "flex": "medium", "finish": "high", "cost": 3, "eco": "low", "eol": "biodegradable", "uv": "good", "moisture": "high_absorption", "strength": "medium"},
+            "Starch-based Polymer": {"type": "Plastic", "temp": 50, "flex": "high", "finish": "low", "cost": 2, "eco": "very_low", "eol": "biodegradable", "uv": "poor", "moisture": "swells", "strength": "low"},
+
+            // --- STANDARD & STRUCTURAL METALS ---
+            "Aluminum 6061": {"type": "Metal", "temp": 300, "flex": "low", "finish": "high", "cost": 5, "eco": "high", "eol": "highly recyclable", "uv": "excellent", "moisture": "waterproof", "strength": "very_high"},
+            "Aluminum 7075": {"type": "Metal", "temp": 300, "flex": "low", "finish": "high", "cost": 6, "eco": "high", "eol": "highly recyclable", "uv": "excellent", "moisture": "waterproof", "strength": "very_high"},
+            "Aluminum 5052": {"type": "Metal", "temp": 300, "flex": "medium", "finish": "high", "cost": 4, "eco": "high", "eol": "highly recyclable", "uv": "excellent", "moisture": "waterproof", "strength": "high"},
+            "Mild Steel (1018)": {"type": "Metal", "temp": 500, "flex": "low", "finish": "medium", "cost": 3, "eco": "medium", "eol": "highly recyclable", "uv": "excellent", "moisture": "corrodes", "strength": "very_high"},
+            "High Carbon Steel (1095)": {"type": "Metal", "temp": 400, "flex": "low", "finish": "medium", "cost": 4, "eco": "medium", "eol": "highly recyclable", "uv": "excellent", "moisture": "corrodes", "strength": "extreme"},
+            "Tool Steel (D2)": {"type": "Metal", "temp": 450, "flex": "low", "finish": "medium", "cost": 6, "eco": "high", "eol": "highly recyclable", "uv": "excellent", "moisture": "corrodes", "strength": "extreme"},
+            "Tool Steel (O1)": {"type": "Metal", "temp": 400, "flex": "low", "finish": "medium", "cost": 5, "eco": "high", "eol": "highly recyclable", "uv": "excellent", "moisture": "corrodes", "strength": "extreme"},
+            "Stainless Steel 304": {"type": "Metal", "temp": 600, "flex": "low", "finish": "high", "cost": 6, "eco": "high", "eol": "highly recyclable", "uv": "excellent", "moisture": "waterproof", "strength": "very_high"},
+            "Stainless Steel 316L": {"type": "Metal", "temp": 650, "flex": "low", "finish": "high", "cost": 7, "eco": "high", "eol": "highly recyclable", "uv": "excellent", "moisture": "waterproof", "strength": "very_high"},
+            "Stainless Steel 420 (Martensitic)": {"type": "Metal", "temp": 500, "flex": "low", "finish": "high", "cost": 6, "eco": "high", "eol": "highly recyclable", "uv": "excellent", "moisture": "waterproof", "strength": "extreme"},
+            "Brass (C360)": {"type": "Metal", "temp": 300, "flex": "low", "finish": "high", "cost": 4, "eco": "medium", "eol": "highly recyclable", "uv": "excellent", "moisture": "waterproof", "strength": "high"},
+            "Bronze (C932)": {"type": "Metal", "temp": 300, "flex": "low", "finish": "high", "cost": 5, "eco": "medium", "eol": "highly recyclable", "uv": "excellent", "moisture": "waterproof", "strength": "high"},
+            "Aluminum Bronze": {"type": "Metal", "temp": 350, "flex": "low", "finish": "high", "cost": 6, "eco": "high", "eol": "highly recyclable", "uv": "excellent", "moisture": "waterproof", "strength": "extreme"},
+            "Copper (C110)": {"type": "Metal", "temp": 400, "flex": "low", "finish": "high", "cost": 6, "eco": "high", "eol": "highly recyclable", "uv": "excellent", "moisture": "corrodes", "strength": "high"},
+            "Copper-Nickel (CuNi)": {"type": "Metal", "temp": 400, "flex": "low", "finish": "high", "cost": 8, "eco": "high", "eol": "highly recyclable", "uv": "excellent", "moisture": "waterproof", "strength": "very_high"},
+            "Zinc Alloy (Zamak 3)": {"type": "Metal", "temp": 100, "flex": "low", "finish": "high", "cost": 2, "eco": "medium", "eol": "highly recyclable", "uv": "excellent", "moisture": "corrodes", "strength": "medium"},
+            "Magnesium AZ31": {"type": "Metal", "temp": 150, "flex": "low", "finish": "high", "cost": 6, "eco": "high", "eol": "highly recyclable", "uv": "excellent", "moisture": "corrodes", "strength": "high"},
+            
+            // --- ADVANCED METALS & SUPERALLOYS ---
+            "Titanium (Ti-6Al-4V)": {"type": "Metal", "temp": 800, "flex": "low", "finish": "high", "cost": 9, "eco": "very_high", "eol": "highly recyclable", "uv": "excellent", "moisture": "waterproof", "strength": "extreme"},
+            "Titanium Grade 2 (Pure)": {"type": "Metal", "temp": 600, "flex": "medium", "finish": "high", "cost": 8, "eco": "very_high", "eol": "highly recyclable", "uv": "excellent", "moisture": "waterproof", "strength": "very_high"},
+            "Inconel 718": {"type": "Metal", "temp": 700, "flex": "low", "finish": "high", "cost": 10, "eco": "very_high", "eol": "highly recyclable", "uv": "excellent", "moisture": "waterproof", "strength": "extreme"},
+            "Inconel 625": {"type": "Metal", "temp": 900, "flex": "low", "finish": "high", "cost": 10, "eco": "very_high", "eol": "highly recyclable", "uv": "excellent", "moisture": "waterproof", "strength": "extreme"},
+            "Invar (Controlled Expansion)": {"type": "Metal", "temp": 300, "flex": "low", "finish": "high", "cost": 9, "eco": "very_high", "eol": "highly recyclable", "uv": "excellent", "moisture": "waterproof", "strength": "very_high"},
+            "Kovar": {"type": "Metal", "temp": 400, "flex": "low", "finish": "high", "cost": 9, "eco": "very_high", "eol": "highly recyclable", "uv": "excellent", "moisture": "waterproof", "strength": "very_high"},
+            "Tool Steel (H13)": {"type": "Metal", "temp": 600, "flex": "low", "finish": "high", "cost": 7, "eco": "high", "eol": "highly recyclable", "uv": "excellent", "moisture": "waterproof", "strength": "extreme"},
+            "Nitinol (Shape Memory Alloy)": {"type": "Metal", "temp": 400, "flex": "very_high", "finish": "high", "cost": 10, "eco": "very_high", "eol": "difficult", "uv": "excellent", "moisture": "waterproof", "strength": "high"},
+            "Tungsten": {"type": "Metal", "temp": 2000, "flex": "low", "finish": "medium", "cost": 10, "eco": "very_high", "eol": "highly recyclable", "uv": "excellent", "moisture": "waterproof", "strength": "extreme"},
+            "Beryllium Copper": {"type": "Metal", "temp": 300, "flex": "medium", "finish": "high", "cost": 9, "eco": "high", "eol": "highly recyclable", "uv": "excellent", "moisture": "waterproof", "strength": "very_high"},
+            "Gold (18k)": {"type": "Metal", "temp": 1000, "flex": "low", "finish": "high", "cost": 10, "eco": "very_high", "eol": "highly recyclable", "uv": "excellent", "moisture": "waterproof", "strength": "medium"},
+            "Platinum": {"type": "Metal", "temp": 1700, "flex": "low", "finish": "high", "cost": 10, "eco": "very_high", "eol": "highly recyclable", "uv": "excellent", "moisture": "waterproof", "strength": "high"},
+
+            // --- CERAMICS & GLASS ---
+            "Alumina Ceramic (Al2O3)": {"type": "Ceramic", "temp": 1500, "flex": "low", "finish": "high", "cost": 6, "eco": "high", "eol": "landfill", "uv": "excellent", "moisture": "waterproof", "strength": "extreme"},
+            "Zirconia (ZrO2)": {"type": "Ceramic", "temp": 2000, "flex": "low", "finish": "high", "cost": 8, "eco": "very_high", "eol": "landfill", "uv": "excellent", "moisture": "waterproof", "strength": "extreme"},
+            "Silicon Carbide (SiC)": {"type": "Ceramic", "temp": 1600, "flex": "low", "finish": "medium", "cost": 9, "eco": "very_high", "eol": "landfill", "uv": "excellent", "moisture": "waterproof", "strength": "extreme"},
+            "Silicon Nitride (Si3N4)": {"type": "Ceramic", "temp": 1200, "flex": "low", "finish": "high", "cost": 9, "eco": "very_high", "eol": "landfill", "uv": "excellent", "moisture": "waterproof", "strength": "extreme"},
+            "Tungsten Carbide (WC)": {"type": "Ceramic", "temp": 2800, "flex": "low", "finish": "high", "cost": 10, "eco": "very_high", "eol": "landfill", "uv": "excellent", "moisture": "waterproof", "strength": "extreme"},
+            "Borosilicate Glass": {"type": "Glass", "temp": 500, "flex": "low", "finish": "high", "cost": 3, "eco": "medium", "eol": "highly recyclable", "uv": "excellent", "moisture": "waterproof", "strength": "medium"},
+            "Soda-Lime Glass": {"type": "Glass", "temp": 400, "flex": "low", "finish": "high", "cost": 1, "eco": "medium", "eol": "highly recyclable", "uv": "excellent", "moisture": "waterproof", "strength": "low"},
+            "Fused Silica": {"type": "Glass", "temp": 1000, "flex": "low", "finish": "high", "cost": 7, "eco": "high", "eol": "highly recyclable", "uv": "excellent", "moisture": "waterproof", "strength": "high"},
+            "Sapphire Glass": {"type": "Glass", "temp": 1800, "flex": "low", "finish": "high", "cost": 10, "eco": "very_high", "eol": "landfill", "uv": "excellent", "moisture": "waterproof", "strength": "extreme"},
+            "Macor (Machinable Ceramic)": {"type": "Ceramic", "temp": 800, "flex": "low", "finish": "high", "cost": 8, "eco": "high", "eol": "landfill", "uv": "excellent", "moisture": "waterproof", "strength": "high"},
+            "Steatite": {"type": "Ceramic", "temp": 1000, "flex": "low", "finish": "medium", "cost": 4, "eco": "medium", "eol": "landfill", "uv": "excellent", "moisture": "waterproof", "strength": "medium"},
+
+            // --- WOODS ---
+            "Plywood (Birch)": {"type": "Wood", "temp": 80, "flex": "medium", "finish": "medium", "cost": 1, "eco": "low", "eol": "biodegradable", "uv": "poor", "moisture": "swells", "strength": "low"},
+            "MDF (Medium Density Fiberboard)": {"type": "Wood", "temp": 60, "flex": "low", "finish": "high", "cost": 1, "eco": "medium", "eol": "landfill", "uv": "poor", "moisture": "swells", "strength": "low"},
+            "Hardwood (Oak)": {"type": "Wood", "temp": 120, "flex": "low", "finish": "high", "cost": 3, "eco": "low", "eol": "biodegradable", "uv": "good", "moisture": "swells", "strength": "medium"},
+            "Hardwood (Walnut)": {"type": "Wood", "temp": 120, "flex": "low", "finish": "high", "cost": 5, "eco": "low", "eol": "biodegradable", "uv": "good", "moisture": "swells", "strength": "medium"},
+            "Hardwood (Mahogany)": {"type": "Wood", "temp": 120, "flex": "low", "finish": "high", "cost": 6, "eco": "low", "eol": "biodegradable", "uv": "good", "moisture": "swells", "strength": "medium"},
+            "Hardwood (Cherry)": {"type": "Wood", "temp": 110, "flex": "low", "finish": "high", "cost": 4, "eco": "low", "eol": "biodegradable", "uv": "good", "moisture": "swells", "strength": "medium"},
+            "Softwood (Pine)": {"type": "Wood", "temp": 90, "flex": "medium", "finish": "medium", "cost": 1, "eco": "low", "eol": "biodegradable", "uv": "poor", "moisture": "swells", "strength": "low"},
+            "Bamboo": {"type": "Wood", "temp": 100, "flex": "high", "finish": "medium", "cost": 2, "eco": "very_low", "eol": "biodegradable", "uv": "good", "moisture": "swells", "strength": "medium"},
+            "Balsa Wood": {"type": "Wood", "temp": 50, "flex": "low", "finish": "low", "cost": 2, "eco": "low", "eol": "biodegradable", "uv": "poor", "moisture": "swells", "strength": "very_low"},
+            "Cork": {"type": "Wood", "temp": 100, "flex": "high", "finish": "low", "cost": 2, "eco": "very_low", "eol": "biodegradable", "uv": "good", "moisture": "low_absorption", "strength": "very_low"},
+
+            // --- ADVANCED COMPOSITES ---
+            "Carbon Fiber (CFRP - Epoxy Matrix)": {"type": "Composite", "temp": 200, "flex": "low", "finish": "high", "cost": 8, "eco": "very_high", "eol": "difficult", "uv": "excellent", "moisture": "waterproof", "strength": "extreme"},
+            "Glass Fiber (GFRP)": {"type": "Composite", "temp": 150, "flex": "medium", "finish": "medium", "cost": 4, "eco": "high", "eol": "difficult", "uv": "good", "moisture": "waterproof", "strength": "high"},
+            "Kevlar (Aramid Matrix)": {"type": "Composite", "temp": 180, "flex": "high", "finish": "medium", "cost": 7, "eco": "high", "eol": "difficult", "uv": "poor", "moisture": "high_absorption", "strength": "extreme"},
+            "FR4 (PCB Electronics Grade)": {"type": "Composite", "temp": 130, "flex": "low", "finish": "medium", "cost": 4, "eco": "high", "eol": "difficult", "uv": "good", "moisture": "waterproof", "strength": "medium"},
+            "G-10 (Garolite)": {"type": "Composite", "temp": 140, "flex": "low", "finish": "high", "cost": 5, "eco": "high", "eol": "difficult", "uv": "good", "moisture": "waterproof", "strength": "high"},
+            "G-11 (High Temp Garolite)": {"type": "Composite", "temp": 180, "flex": "low", "finish": "high", "cost": 6, "eco": "high", "eol": "difficult", "uv": "good", "moisture": "waterproof", "strength": "high"},
+            "Carbon-Filled Nylon (Onyx)": {"type": "Composite", "temp": 145, "flex": "low", "finish": "medium", "cost": 6, "eco": "high", "eol": "difficult", "uv": "good", "moisture": "low_absorption", "strength": "very_high"},
+            "Glass-Filled PEEK": {"type": "Composite", "temp": 280, "flex": "low", "finish": "high", "cost": 10, "eco": "very_high", "eol": "difficult", "uv": "excellent", "moisture": "waterproof", "strength": "extreme"},
+            "SMC (Sheet Molding Compound)": {"type": "Composite", "temp": 150, "flex": "low", "finish": "high", "cost": 3, "eco": "high", "eol": "difficult", "uv": "good", "moisture": "waterproof", "strength": "high"},
+            "BMC (Bulk Molding Compound)": {"type": "Composite", "temp": 150, "flex": "low", "finish": "medium", "cost": 2, "eco": "high", "eol": "difficult", "uv": "good", "moisture": "waterproof", "strength": "high"},
+            "Mycelium Composite (Bio-Composite)": {"type": "Composite", "temp": 100, "flex": "low", "finish": "low", "cost": 2, "eco": "very_low", "eol": "biodegradable", "uv": "poor", "moisture": "high_absorption", "strength": "low"}
+        };
+
+        class DFMEngine {
+            static scoreMaterials(reqs) {
+                let scored = [];
+                for (const [mat, props] of Object.entries(MATERIALS)) {
+                    let score = 0;
+                    if (reqs.temp > props.temp) score -= 15; else score += 2;
+                    if (["25-50kg", "50kg+"].includes(reqs.load)) {
+                        if (["low", "medium", "very_low"].includes(props.strength)) score -= 5;
+                        else score += 4;
+                    }
+                    if (reqs.moisture === "high (wet/submerged)" && ["high_absorption", "swells", "corrodes"].includes(props.moisture)) score -= 8;
+                    if (reqs.uv === "high (direct sunlight)" && props.uv === "poor") score -= 5;
+                    if (reqs.flex === props.flex) score += 3;
+                    if (reqs.finish === props.finish) score += 2;
+                    if (reqs.user_contact === "direct" && props.finish === "high") score += 2;
+                    if (reqs.time === "quick") score += (props.cost <= 4) ? 2 : -2;
+                    if (reqs.lifespan === "short (<1 yr)") {
+                        if (["very_high", "high"].includes(props.eco)) score -= 3;
+                        if (props.eol.includes("compost") || props.eol.includes("biodegradable")) score += 3;
+                    }
+                    scored.push({ mat, score });
+                }
+                return scored.sort((a, b) => b.score - a.score).slice(0, 3);
+            }
+
+            static evaluateProcess(reqs, volume, primaryMat) {
+                let add = 6, sub = 6, form = 7;
+                if (reqs.production === "high") { add -= 5; form += 5; }
+                if (reqs.production === "low") form -= 6;
+                if (reqs.dfam === "thin walls / complex overhangs") { add += 3; sub -= 4; }
+                if (reqs.precision === "high") sub += 4;
+                if (reqs.components === "5+ (complex assembly)") add += 2;
+                
+                // --- HARD VETO FOR PLA/PETG/RESIN ON CNC ---
+                if (primaryMat && (primaryMat.includes("PLA") || primaryMat.includes("PETG") || primaryMat.includes("Resin") || primaryMat.includes("Elastomer") || primaryMat.includes("Rubber"))) {
+                    sub -= 15;
+                }
+
+                let results = [
+                    { name: "Additive Manufacturing (3D Printing)", score: add },
+                    { name: "Subtractive (CNC Machining)", score: sub },
+                    { name: "Formative (Injection Molding/Casting)", score: form }
+                ];
+                let best = results.reduce((max, obj) => (max.score > obj.score) ? max : obj);
+                return { bestProc: best.name, confidence: Math.min(98, Math.max(45, Math.floor((best.score / 12) * 100))) };
+            }
+
+            static generateReport(reqs, primaryMat, bestProc) {
+                const props = MATERIALS[primaryMat];
+                let why = `The system selected <b>${bestProc}</b> primarily due to your '${reqs.production}' production volume and '${reqs.precision}' precision requirement. <b>${primaryMat}</b> emerged as the optimal material to withstand the '${reqs.load}' structural load while surviving the specified ${reqs.uv} UV and ${reqs.moisture} conditions.`;
+
+                let risks = [];
+                if (reqs.temp > (props.temp - 20)) risks.push(`⚠️ <b>THERMAL:</b> Operating within 20°C of limit. Risk of deformation.`);
+                if (reqs.uv === "high (direct sunlight)" && props.uv === "poor") risks.push(`⚠️ <b>RADIATION:</b> Degrades under UV. Requires coating.`);
+                if (reqs.moisture === "high (wet/submerged)" && props.moisture !== "waterproof") risks.push(`⚠️ <b>ENVIRONMENTAL:</b> Highly vulnerable to moisture.`);
+                if (reqs.load === "50kg+" && ["low", "medium", "very_low"].includes(props.strength)) risks.push(`⚠️ <b>STRUCTURAL:</b> Extreme load risk. Increase wall thickness.`);
+                if (risks.length === 0) risks.push("✅ No critical environmental or structural failure risks detected based on inputs.");
+
+                let baseCost = props.cost;
+                let costStr = "$".repeat(Math.min(5, Math.max(1, Math.floor(baseCost / 2))));
+                let costDesc = baseCost <= 3 ? "Low Cost" : baseCost <= 6 ? "Medium Cost" : "Premium Cost";
+
+                let impact = props.eco.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase());
+                let eol = props.eol.replace(/\b\w/g, l => l.toUpperCase());
+                let verdict = `Balanced profile. Ensure proper routing to ${eol.toLowerCase()} streams.`;
+                
+                if (reqs.lifespan === "short (<1 yr)") {
+                    if (["High", "Very High"].includes(impact)) verdict = `High structural debt. Creates excessive carbon emissions for short lifespan.`;
+                    else verdict = `Sustainable synergy. Aligns well with a short lifespan.`;
+                } else if (reqs.lifespan === "long (10+ yrs)") {
+                    if (["Difficult", "Landfill"].includes(eol)) verdict = `End-of-life bottleneck. Will eventually landfill.`;
+                    else verdict = `High ROI circularity. Initial footprint amortized over long lifespan.`;
+                }
+
+                let tooling_process = "";
+                let tooling_material = "";
+                let dfam = "";
+                let future_title = "";
+                let future_dfam = "";
+
+                if (bestProc.includes("Additive")) {
+                    tooling_process = props.type.includes("Metal") ? "DMLS / SLM (Powder Bed Fusion)" : "SLS / FDM / SLA Multi-Jet";
+                    tooling_material = primaryMat + (props.type.includes("Metal") ? " (Atomized Powder Feedstock)" : " (Filament/Resin Feedstock)");
+                    dfam = "Ensure self-supporting angles (>45°) to avoid thermal warping. Minimize bridging. Consider lattice structures to reduce print time and material usage.";
+                    future_title = "Prototyping Strategy (DFAM)";
+                    future_dfam = "The primary manufacturing route is already Additive Manufacturing (DFAM). You can proceed directly to functional prototyping using the selected 3D printing process and feedstock.";
+                } else if (bestProc.includes("Subtractive")) {
+                    tooling_process = "3-Axis or 5-Axis CNC Machining Center";
+                    tooling_material = "Solid " + primaryMat + " Billet (Machined with Carbide/HSS Endmills)";
+                    dfam = "Eliminate sharp internal corners (ensure internal radii > tool radius). Avoid deep, narrow pockets (L:D ratio < 4:1). Ensure direct line-of-sight for tool access.";
+                    future_title = "Prototyping Alternative (DFAM)";
+                    future_dfam = `Since you are routing for CNC Machining, we highly recommend an initial run using Additive Manufacturing (3D Printing). Printing this geometry allows you to physically test fit, assembly, and basic kinematics at a fraction of the cost before buying expensive billet material and locking in CNC machine time.`;
+                } else {
+                    tooling_process = props.type.includes("Plastic") ? "High-Pressure Injection Molding" : "Die Casting / Investment Casting";
+                    tooling_material = primaryMat + " Shot into Hardened Steel or Aluminum Mold Cavity";
+                    dfam = "Apply uniform wall thicknesses to prevent sink marks. Add 1° to 3° draft angles to all vertical walls. Ribs should be approx. 60% of the nominal wall thickness.";
+                    future_title = "Prototyping Alternative (DFAM)";
+                    future_dfam = `Since you are routing for expensive Hard Tooling (Molding/Casting), NEVER cut steel without physical validation. We highly recommend an initial run using Additive Manufacturing (3D Printing). Printing prototypes lets you test thermal and mechanical parameters cheaply before spending thousands on a mold cavity.`;
+                }
+
+                return { 
+                    why_summary: why, 
+                    risks, 
+                    cost_visual: costStr, 
+                    cost_desc: costDesc, 
+                    tooling_process,
+                    tooling_material,
+                    dfam, 
+                    future_title,
+                    future_dfam,
+                    lcsa_impact: impact, 
+                    lcsa_eol: eol, 
+                    lcsa_verdict: verdict 
+                };
+            }
+        }
+
+        // ==========================================
+        // ANALYSIS RUN & UI UPDATE
+        // ==========================================
+        document.getElementById('runBtn').addEventListener('click', () => {
+            if (window.appState.volume === 0) logToConsole("WARNING", "No geometry detected. Proceeding heuristically.", "text-amber-400");
+            
+            const keys = ["dfam", "components", "uv", "moisture", "load", "flex", "lifespan", "finish", "precision", "production", "time", "user_contact"];
+            let reqs = { temp: parseInt(document.getElementById('temp').value) };
+            keys.forEach(k => { reqs[k] = document.getElementById(k).value; });
+
+            const topMats = DFMEngine.scoreMaterials(reqs);
+            const processData = DFMEngine.evaluateProcess(reqs, window.appState.volume, topMats[0].mat);
+            const intel = DFMEngine.generateReport(reqs, topMats[0].mat, processData.bestProc);
+
+            // Save for PDF export
+            window.appState.currentReport = { reqs, topMats, processData, intel };
+
+            terminal.innerHTML = "";
+
+            let html = `
+            <div class="p-4 rounded-lg border-l-4 border-emerald-500 mb-5 bg-white dark:bg-slate-800 shadow">
+                <div class="text-[11px] font-bold uppercase tracking-wider mb-1 text-slate-500 dark:text-slate-400">Primary Routing Recommendation</div>
+                <div class="text-emerald-600 dark:text-emerald-500 text-lg font-bold">⭐ ${processData.bestProc}</div>
+                <div class="text-[13px] mt-1 text-slate-700 dark:text-slate-200">System Confidence Score: <b class="text-sky-600 dark:text-sky-400">${processData.confidence}%</b></div>
+            </div>
+
+            <div class="mb-5">
+                <div class="text-[11px] font-bold uppercase tracking-wider mb-2 text-slate-500 dark:text-slate-400">Decision Summary</div>
+                <div class="text-[14px] leading-relaxed text-slate-800 dark:text-slate-200">${intel.why_summary}</div>
+            </div>
+
+            <div class="text-[11px] font-bold uppercase tracking-wider mb-2 text-slate-500 dark:text-slate-400">Top Material Candidates</div>
+            <ul class="list-none p-0 mb-2">
+                ${topMats.map((m, i) => `<li class="mb-1 text-[14px] text-sky-600 dark:text-sky-400"><b>${i+1}. ${m.mat}</b> <span class="text-slate-500">(Score: ${m.score})</span></li>`).join('')}
+            </ul>
+            <p class="text-[11px] italic text-slate-500 mb-4">* Note: Scores are a cumulative heuristic sum of material properties, not a scale of 1-10 or a percentage.<br>(Ranges: 10+ = Highly Optimized | 5-9 = Viable Match | &lt;5 = Compromised Match)</p>
+
+            <div class="text-[14px] mb-5 text-slate-800 dark:text-slate-100">Estimated Material Cost: <b class="text-emerald-600 dark:text-emerald-400 text-lg tracking-widest">${intel.cost_visual}</b> (${intel.cost_desc})</div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-md shadow border border-slate-200 dark:border-slate-700">
+                    <div class="text-[11px] font-bold uppercase tracking-wider mb-1 text-slate-500 dark:text-slate-400">Sustainability (LCSA)</div>
+                    <div class="text-[14px] font-bold mb-1 text-emerald-600 dark:text-emerald-400">Footprint: ${intel.lcsa_impact} | EOL: ${intel.lcsa_eol}</div>
+                    <div class="text-[13px] italic text-slate-600 dark:text-slate-400">${intel.lcsa_verdict}</div>
+                </div>
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-md shadow border border-slate-200 dark:border-slate-700">
+                    <div class="text-[11px] font-bold uppercase tracking-wider mb-2 text-slate-500 dark:text-slate-400">Failure Risk Prediction</div>
+                    ${intel.risks.map(r => `<div class="text-[13px] mb-1 ${r.includes('⚠️') ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-500'}">${r}</div>`).join('')}
+                </div>
+            </div>
+
+            <div class="p-4 rounded-md bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 shadow-inner mb-4">
+                <div class="text-[11px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-500 mb-3">Manufacturing & Tooling Strategy</div>
+                
+                <div class="mb-2">
+                    <span class="text-[12px] font-bold text-slate-500 dark:text-slate-400 block">Recommended Machine Process</span>
+                    <span class="text-[14px] text-slate-800 dark:text-slate-100">${intel.tooling_process}</span>
+                </div>
+                <div class="mb-2">
+                    <span class="text-[12px] font-bold text-slate-500 dark:text-slate-400 block">Feedstock / Tooling Material</span>
+                    <span class="text-[14px] text-slate-800 dark:text-slate-100">${intel.tooling_material}</span>
+                </div>
+                <div>
+                    <span class="text-[12px] font-bold text-slate-500 dark:text-slate-400 block">Design Guidelines (DFAM)</span>
+                    <span class="text-[14px] text-slate-800 dark:text-slate-100">${intel.dfam}</span>
+                </div>
+            </div>
+            `;
+            
+            let futureHtml = "";
+            if (intel.future_dfam !== "") {
+                futureHtml = `
+                <div class="p-4 mt-4 rounded-md bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900">
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 mb-1">💡 ${intel.future_title}</div>
+                    <div class="text-[14px] mt-1 text-slate-800 dark:text-slate-200">${intel.future_dfam}</div>
+                </div>
+                `;
+            }
+            
+            terminal.innerHTML = html + futureHtml;
+            
+            const exportBtn = document.getElementById('exportBtn');
+            exportBtn.disabled = false;
+            exportBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        });
+
+        // ==========================================
+        // REAL PDF EXPORT via html2pdf & FEEDBACK POP-UP
+        // ==========================================
+        document.getElementById('exportBtn').addEventListener('click', () => {
+            const btn = document.getElementById('exportBtn');
+            const originalText = btn.innerText;
+            btn.innerText = "⏳ Generating PDF...";
+            
+            const rpt = window.appState.currentReport;
+            if (!rpt) return;
+
+            const canvasDataUrl = renderer.domElement.toDataURL("image/png");
+            
+            const pdfDiv = document.getElementById('pdfContainer');
+            
+            const dimStr = `${window.appState.dimensions[0].toFixed(2)} x ${window.appState.dimensions[1].toFixed(2)} x ${window.appState.dimensions[2].toFixed(2)} mm`;
+
+            let pdfFutureHtml = "";
+            if (rpt.intel.future_dfam !== "") {
+                pdfFutureHtml = `
+                <div style="page-break-inside: avoid; margin-top: 20px;">
+                    <h2 style="color: #2563EB; font-size: 18px; margin-bottom: 10px;">6. ${rpt.intel.future_title}</h2>
+                    <p style="font-size: 14px; margin: 0; padding: 10px; background-color: #EFF6FF; border-left: 4px solid #3B82F6;">${rpt.intel.future_dfam}</p>
+                </div>
+                `;
+            }
+
+            // Un-hide the container to render it properly. It's at the end of the body.
+            pdfDiv.classList.remove('hidden');
+            
+            pdfDiv.innerHTML = `
+                <div style="font-family: 'Manrope', Helvetica, Arial, sans-serif; padding: 20px; color: #000;">
+                    <h1 style="color: #2563EB; margin-bottom: 5px; font-size: 24px;">PARTH — DFM Master Report</h1>
+                    <p style="margin: 0; color: #475569; font-size: 14px;"><strong>Geometry:</strong> ${window.appState.filename} | <strong>Volume:</strong> ${window.appState.volume.toFixed(2)} mm³ | <strong>Dims:</strong> ${dimStr}</p>
+                    <hr style="margin: 20px 0; border: 1px solid #CBD5E1;">
+                    
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <img src="${canvasDataUrl}" style="max-width: 400px; border: 1px solid #ccc; border-radius: 4px;" />
+                    </div>
+
+                    <div style="page-break-inside: avoid;">
+                        <h2 style="color: #2563EB; font-size: 18px; margin-bottom: 10px;">1. Primary Routing Recommendation</h2>
+                        <p style="font-size: 16px; margin: 0;"><strong>Optimized Process:</strong> ${rpt.processData.bestProc} (Confidence: ${rpt.processData.confidence}%)</p>
+                        <p style="font-size: 14px; font-style: italic; color: #475569; margin-top: 5px;">${rpt.intel.why_summary}</p>
+                    </div>
+
+                    <div style="page-break-inside: avoid; margin-top: 20px;">
+                        <h2 style="color: #2563EB; font-size: 18px; margin-bottom: 10px;">2. Top Material Candidates & Economics</h2>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                            <tr style="background: #1E293B; color: white;">
+                                <th style="padding: 8px; border: 1px solid #CBD5E1; text-align: left;">Rank</th>
+                                <th style="padding: 8px; border: 1px solid #CBD5E1; text-align: left;">Material Grade</th>
+                                <th style="padding: 8px; border: 1px solid #CBD5E1; text-align: center;">Score</th>
+                            </tr>
+                            ${rpt.topMats.map((m, i) => `
+                            <tr>
+                                <td style="padding: 8px; border: 1px solid #CBD5E1; text-align: center;">${i+1}</td>
+                                <td style="padding: 8px; border: 1px solid #CBD5E1;">${m.mat}</td>
+                                <td style="padding: 8px; border: 1px solid #CBD5E1; text-align: center;">${m.score}</td>
+                            </tr>
+                            `).join('')}
+                        </table>
+                        <p style="font-size: 11px; color: #64748B; font-style: italic; margin-top: 5px;">
+                            * Note: Scores are a cumulative heuristic sum of material properties, not a scale of 1-10 or a percentage.<br>
+                            (Ranges: 10+ = Highly Optimized | 5-9 = Viable Match | &lt;5 = Compromised Match)
+                        </p>
+                        <p style="font-size: 14px; margin-top: 10px;"><strong>Relative Cost Profile:</strong> ${rpt.intel.cost_desc} (${rpt.intel.cost_visual.replace(/💲/g, '$')})</p>
+                    </div>
+
+                    <div style="page-break-inside: avoid; margin-top: 20px;">
+                        <h2 style="color: #2563EB; font-size: 18px; margin-bottom: 10px;">3. Life Cycle Sustainability Assessment (LCSA)</h2>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                            <tr><td style="padding: 8px; border: 1px solid #A7F3D0; background: #10B981; color: white; font-weight: bold; width: 30%;">Carbon Footprint</td><td style="padding: 8px; border: 1px solid #A7F3D0; background: #F0FDF4;">${rpt.intel.lcsa_impact}</td></tr>
+                            <tr><td style="padding: 8px; border: 1px solid #A7F3D0; background: #10B981; color: white; font-weight: bold;">End-of-Life Route</td><td style="padding: 8px; border: 1px solid #A7F3D0; background: #F0FDF4;">${rpt.intel.lcsa_eol}</td></tr>
+                            <tr><td style="padding: 8px; border: 1px solid #A7F3D0; background: #10B981; color: white; font-weight: bold;">LCSA Verdict</td><td style="padding: 8px; border: 1px solid #A7F3D0; background: #F0FDF4;">${rpt.intel.lcsa_verdict}</td></tr>
+                        </table>
+                    </div>
+
+                    <div class="html2pdf__page-break"></div>
+
+                    <div style="page-break-inside: avoid; margin-top: 20px;">
+                        <h2 style="color: #2563EB; font-size: 18px; margin-bottom: 10px;">4. Failure Risk Prediction Assessment</h2>
+                        <div style="font-size: 14px;">
+                            ${rpt.intel.risks.map(r => {
+                                if(r.includes('⚠️')) return `<p style="color: #DC2626; margin: 4px 0;"><strong>[WARNING]</strong> ${r.replace('⚠️ ', '')}</p>`;
+                                return `<p style="color: #16A34A; margin: 4px 0;"><strong>[PASS]</strong> ${r.replace('✅ ', '')}</p>`;
+                            }).join('')}
+                        </div>
+                    </div>
+
+                    <div style="page-break-inside: avoid; margin-top: 20px;">
+                        <h2 style="color: #2563EB; font-size: 18px; margin-bottom: 10px;">5. Manufacturing & Tooling Strategy</h2>
+                        <p style="font-size: 14px; margin: 0 0 5px 0;"><strong>Machine Process:</strong> ${rpt.intel.tooling_process}</p>
+                        <p style="font-size: 14px; margin: 0 0 5px 0;"><strong>Feedstock / Tooling:</strong> ${rpt.intel.tooling_material}</p>
+                        <p style="font-size: 14px; margin: 0;"><strong>Design Guidelines:</strong> ${rpt.intel.dfam}</p>
+                    </div>
+
+                    ${pdfFutureHtml}
+                </div>
+            `;
+
+            // Temporarily remove h-screen to allow full height capture without clipping
+            document.body.classList.remove('h-screen', 'overflow-hidden');
+
+            var opt = {
+                margin:       10,
+                filename:     window.appState.filename.replace('.stl', '') + '_Master_Report.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'letter', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            // Short delay to let the DOM expand properly before taking snapshot
+            setTimeout(() => {
+                html2pdf().set(opt).from(pdfDiv).save().then(() => {
+                    // Clean up & restore app state to hidden layout
+                    document.body.classList.add('h-screen', 'overflow-hidden');
+                    pdfDiv.classList.add('hidden');
+                    pdfDiv.innerHTML = ''; 
+                    
+                    btn.innerText = originalText;
+                    logToConsole("SUCCESS", "Enterprise PDF Report successfully downloaded.", "text-emerald-500");
+                    
+                    setTimeout(() => {
+                        const fm = document.getElementById('feedbackModal');
+                        const fmc = document.getElementById('feedbackModalContent');
+                        fm.classList.remove('hidden');
+                        fm.classList.add('flex');
+                        setTimeout(() => {
+                            fm.classList.remove('opacity-0');
+                            fmc.classList.remove('scale-95');
+                        }, 10);
+                    }, 500);
+                });
+            }, 300);
+        });
+
+    </script>
+</body>
+</html>
